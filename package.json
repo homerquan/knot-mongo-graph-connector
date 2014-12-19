@@ -1,0 +1,35 @@
+{
+  "name": "knot-mongo-graph-connector",
+  "title": "mongo graph connector for knot",
+  "version": "0.0.1",
+  "main": "./server/server",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  },
+  "dependencies": {
+    "optimist": "~0.6.1",
+    "underscore": "~1.7.0",
+    "mongo-oplog": "~0.1.5",
+    "bson": "~0.2.16",
+    "gremlin": "~0.4.0",
+    "grex": "~0.7.2"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-npm-install": "~0.1.0",
+    "grunt-shell": "^0.7.0",
+    "grunt-version": "~0.3.0",
+    "load-grunt-tasks": "~0.6.0",
+    "mocha": "^1.12.1",
+    "request": "^2.27.0",
+    "uglify-js": "^2.2.5",
+    "debug": "~2.1.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}

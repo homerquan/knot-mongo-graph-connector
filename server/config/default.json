@@ -1,0 +1,16 @@
+{
+	"DB": "wt",
+	"BLOCK_SIZE": 100,
+	"GRAPH_HOST": "localhost",
+	"GRAPH_PORT": 8182,
+	"MONGO_HOST": "10.0.1.101",
+	"MONGO_PORT": 27017,
+	"GRAPH": "test",
+	"EDGES": ["links"],
+	"VERTICES": ["jobs", "institutions", "projects"],
+	"TYPE_MAPS": {
+		"jobs": "job",
+		"institutions": "institution",
+		"projects": "project"
+	}
+}

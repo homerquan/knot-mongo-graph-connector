@@ -1,0 +1,83 @@
+#!/usr/bin/env node
+
+var $ = require('./lib/dollar').$,
+	_ = require('underscore'),
+	bson = require('bson'),
+	MongoOplog = require('mongo-oplog'),
+	argv = require('optimist')
+	.usage('connector for mongo and graph db.\nUsage: $0')
+	.alias('t', 'timestamp')
+	.describe('t', 'timestamp: the timestamp of the last run')
+	.default('t', './timestamp.json')
+	.alias('c', 'config')
+	.describe('c', 'config: titan graph graph properties')
+	.default('c', './reflen-titan-berkeleydb-es.properties')
+	.argv;
+
+/*
+ * load common components
+ */
+require('./lib/allLoader').loadDollar();
+
+var Gremlin = require('gremlin');
+var gremlin = new Gremlin({
+	classpath: [
+		$('config').TITAN_PATH + '/lib/*.jar'
+	],
+	options: $('config').JVM_PARAMS
+});
+
+var TitanFactory = gremlin.java.import('com.thinkaurelius.titan.core.TitanFactory'),
+	graph = TitanFactory.openSync(argv.c),
+	g = gremlin.wrap(graph);
+
+g.V().count(function(err, count) {
+	console.log(count);
+});
+
+var db = $('config').DB;
+var edgesNs = $('config').EDGES;
+var verticesNs = $('config').VERTICES;
+var timestamp = null;
+
+var oplog = MongoOplog('mongodb://127.0.0.1:27017/local').tail(
+	function() {
+		console.log('start syncing mongo db and graph db');
+	}
+);
+/*
+ * add edge into graph db
+ */
+var processingEdge = function(data) {
+	console.log('proc edge');
+};
+/*
+ * add vertex into graph db
+ */
+var processingVertex = function(data) {
+	console.log('proc vertex');
+	console.log(data);
+};
+
+oplog.on('op', function(data) {
+	var op = data.op;
+	timestamp = data.ts.toString();
+	ns = data.ns;
+	//check start with "db."
+	if (ns.lastIndexOf(db + '.', 0) !== 0)
+		return;
+	collection = ns.substr(db.length + 1);
+	if (_.contains(edgesNs, collection)) {
+		processingEdge(data);
+	}
+	if (_.contains(verticesNs, collection)) {
+		processingVertex(data);
+	}
+});
+
+//console.log('save timestamp:'+timestamp);
+//save last timestamp 
+
+oplog.stop(function() {
+	console.log('server stopped');
+});
