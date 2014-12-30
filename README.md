@@ -17,5 +17,5 @@ How to use
 3. run `node server/server.js`
 4. DONE
 
-Note: if it's first time run, it will replay all oplogs. Make sure all data are in oplogs, otherwise, a full restore may be needed. 
+Note: For the first time run, it will replay all oplogs. Make sure all data are in oplogs, otherwise, a full restore may be needed. 
 
