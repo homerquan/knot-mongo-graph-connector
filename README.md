@@ -8,7 +8,7 @@ About
 This components is part of knot <https://github.com/homerquan/knot>: a graph analysis platform.
 It is inspired by mongo connector
 <https://github.com/10gen-labs/mongo-connector>
-and Write in nodejs. To sync data in real-time from collections in mongoDB into gremlin compatible graph DB (such as titan, neo4j). 
+and re-wrote in nodejs. To sync data in real-time from collections in mongoDB into gremlin compatible graph DB (such as titan, neo4j). 
 
 How to use
 ----------
