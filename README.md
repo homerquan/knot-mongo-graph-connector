@@ -1,6 +1,6 @@
 Knot mongo graph connector
 ==========================
-![alt tag](http://spirtfire.com/res/img/knot_connector.png)
+![alt tag](http://spirtfire.com/res/img/knot-connector.png)
 Real-time graph analysis on data in mongoDB
 
 About
