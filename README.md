@@ -12,7 +12,7 @@ and wrote in nodejs. To sync data in real-time from collections in mongoDB into 
 
 How to use
 ----------
-1. `npm i .`
+1. `npm i knot-mongo-graph-connector`
 2. change config (server/config/<env>.json) to specify which collections are vertieces or edges
 3. run `node server/server.js`
 4. DONE
