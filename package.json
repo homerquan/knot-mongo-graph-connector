@@ -3,6 +3,28 @@
   "title": "knot mongo graph connector",
   "version": "0.0.1",
   "main": "./server/server",
+  "homepage": "https://github.com/homerquan/spinel",
+  "author": {
+    "name": "Homer Quan",
+    "email": "support@homerquan.com",
+    "url": "http://www.homerquan.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:homerquan/knot-mongo-graph-connector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/homerquan/knot-mongo-graph-connector/issues"
+  },
+  "licenses": [{
+    "type": "MIT"
+  }],
+  "keywords": [
+    "mongodb",
+    "graphDB",
+    "gremlin",
+    "connector"
+  ],
   "engines": {
     "node": "0.10.x",
     "npm": "1.4.x"
