@@ -1,12 +1,13 @@
 {
   "name": "knot-mongo-graph-connector",
-  "title": "mongo graph connector for knot",
+  "title": "knot mongo graph connector",
   "version": "0.0.1",
   "main": "./server/server",
   "engines": {
     "node": "0.10.x",
     "npm": "1.4.x"
   },
+  "license": "MIT",
   "dependencies": {
     "optimist": "~0.6.1",
     "underscore": "~1.7.0",
@@ -15,7 +16,6 @@
     "gremlin": "~0.4.0",
     "grex": "~0.7.2"
   },
-  "license": "MIT",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-cli": "~0.1.13",

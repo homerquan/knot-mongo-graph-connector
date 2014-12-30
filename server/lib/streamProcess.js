@@ -14,6 +14,12 @@ var client = grex.createClient({
 });
 var edgesNs = $('config').EDGES;
 var verticesNs = $('config').VERTICES;
+var vertexTypeMap = $('config').VERTEX_TYPE_MAPS;
+var vertexFieldMask = $('config').VERTEX_FIELD_MASKS;
+
+var objectToGroovy = function(object) {
+	return JSON.stringify(object).replace('{', '[').replace('}', ']');
+};
 
 var process = module.exports = function(data) {
 	var op = data.op;
@@ -24,46 +30,141 @@ var process = module.exports = function(data) {
 		return;
 	collection = ns.substr(db.length + 1);
 	if (_.contains(edgesNs, collection)) {
-		processingEdge(data);
+		processingEdge(data, collection);
 	}
 	if (_.contains(verticesNs, collection)) {
-		processingVertex(data);
+		processingVertex(data, collection);
 	}
 };
 
 /*
- * add edge into graph db
+ * add/update/delete edge into graph db
  */
-var processingEdge = function(data) {
+var processingEdge = function(data, collection) {
 	console.log('proc edge');
+	var query = gremlin();
+	var properties = {};
+	var item = data.o;
+	//upsert (should be repeatable)
+	if (data.op === 'i') {
+		if (item.src && item.dest) {
+			query("src=g.V('_uid','" + item.src.toString() + "').next()");
+			query("dest=g.V('_uid','" + item.dest.toString() + "').next()");
+			//find edge between src and dest
+			query("edgePipe=src.bothE.as('x').bothV.retain([dest]).back('x')");
+			properties = {
+				'_etype': item.type,
+				'_uid': item._id
+			};
+			if (item.prop) {
+				properties = _.extend(item.prop, properties);
+			}
+			if (item.type) {
+				properties = _.extend({
+					'_etype': item.type
+				}, properties);
+			}
+			var groovyProperties = objectToGroovy(properties);
+			var upsertQuery = [
+				"if(edgePipe.count()){",
+				groovyProperties + ".each {edgePipe.next().setProperty(it.key, it.value)}",
+				"} else {",
+				"g.addEdge(src,dest,'" + item.type + "'," + groovyProperties + ")",
+				"}"
+			].join('\n');
+			query(upsertQuery);
+			client.execute(query, function(err, response) {
+				console.log(err);
+			});
+		}
+	}
+	if (data.op === 'u') {
+		if (item['$set'])
+			item = item['$set'];
+		item._uid = data.o2._id.toString();
+		query("edge=g.E.has('_uid','" + item._uid + "').next()");
+		properties = {
+			'_uid': item._id
+		};
+		if (item.prop) {
+			properties = _.extend(item.prop, properties);
+		}
+		query(objectToGroovy(properties) + ".each{edge.setProperty(it.key, it.value)}");
+		client.execute(query, function(err, response) {
+			console.log(err);
+		});
+	}
+	if (data.op === 'd') {
+		query("edge=g.E.has('_uid','" + item._id.toString() + "').remove()");
+		client.execute(query, function(err, response) {
+			console.log(err);
+		});
+	}
 };
 /*
- * add vertex into graph db
+ * add/update/delete vertex into graph db
  */
-var processingVertex = function(data) {
+var processingVertex = function(data, collection) {
 	console.log('proc vertex');
 	var item = data.o;
 	var query = gremlin();
+	var groovyItem = {};
+	var mask = [];
+
+	//upsert (should be repeatable)
 	if (data.op === 'i') {
-
+		//"_id" is used in titan graph db
 		if (item._id) {
-			item.uid = item._id.toString();
+			item._uid = item._id.toString();
 			delete item._id;
 		}
-		query(g.addVertex(item));
+		//apply mask
+		if (vertexFieldMask[collection]) {
+			mask = _.union(vertexFieldMask[collection], ['_uid']);
+			item = _.pick(item, mask);
+		}
+		if (vertexTypeMap[collection]) {
+			item._vtype = vertexTypeMap[collection];
+		}
+		//find vertex by id
+		query("vertexPipe=g.V.has('_uid','" + item._uid + "')");
+		groovyItem = objectToGroovy(item);
+		var upsertQuery = [
+			"if(vertexPipe.count()){",
+			groovyItem + ".each {vertexPipe.next().setProperty(it.key, it.value)}",
+			"} else {",
+			"g.addVertex(" + groovyItem + ")",
+			"}"
+		].join('\n');
+		query(upsertQuery);
 		client.execute(query, function(err, response) {
-			console.log(response);
+			console.log(err);
 		});
-	};
+	}
 	if (data.op === 'u') {
-
-		if (item._id) {
-			item.oid = item._id.toString();
-			delete item._id;
+		if (item['$set'])
+			item = item['$set'];
+		item._uid = data.o2._id.toString();
+		//apply mask
+		if (vertexFieldMask[collection]) {
+			mask = _.union(vertexFieldMask[collection], ['_uid']);
+			item = _.pick(item, mask);
 		}
-		query(g.addVertex(item));
+		if (vertexTypeMap[collection]) {
+			item._vtype = vertexTypeMap[collection];
+		}
+		//find vertex by id
+		query("vertexPipe=g.V.has('_uid','" + item._uid + "')");
+		groovyItem = objectToGroovy(item);
+		query(groovyItem + ".each {vertexPipe.next().setProperty(it.key, it.value)}");
 		client.execute(query, function(err, response) {
-			console.log(response);
+			console.log(err);
+		});
+	}
+	if (data.op === 'd') {
+		query("g.V.has('_uid','" + item._id.toString() + "').remove()");
+		client.execute(query, function(err, response) {
+			console.log(err);
 		});
 	}
 };

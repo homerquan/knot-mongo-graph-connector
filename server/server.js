@@ -12,9 +12,6 @@ var $ = require('./lib/dollar').$,
 	.default('t', './timestamp.json')
 	.argv;
 
-/*
- * load common components
- */
 require('./lib/allLoader').loadDollar();
 
 var timestamp = null;
